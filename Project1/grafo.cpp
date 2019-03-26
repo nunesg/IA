@@ -5,6 +5,7 @@ using namespace std;
 #define N 100
 
 typedef pair<int, int> ii;
+typedef pair<int, ii> iii;
 
 struct edge{
 	int destino, peso;
@@ -12,7 +13,7 @@ struct edge{
 	edge(int a, int b) : destino(a), peso(b) {}
 };
 
-int n, seen[N];//numero de vertices, vetor de visitados
+int n, seen[N], h[N];//numero de vertices, vetor de visitados
 map<string, int> dic;//mapeia os nomes das cidades para inteiros
 vector<edge> adj[N];//listas de adjacencias do grafo
 string inv[N];//recupera o nome de uma cidade pelo indice 
@@ -140,6 +141,50 @@ bool dfs_limitada(int u, int target, int depth){//busca em profundidade limitada
 }
 
 
+
+void A_star(int origin, int target){
+	
+	vector<int> pai(n);
+	memset(seen, -1, sizeof seen);
+	priority_queue< iii > pq;
+	
+	seen[origin] = h[origin];
+	pq.push(iii(-h[origin], ii(0, origin)));// primeiro campo eh a heuristica+distancia, segundo campo a distancia percorrida, terceiro campo o vertice.
+	
+	//a fila ta ordenando pelo maior valor de heuristica, por isso eu insiro o valor negativado pra pegar o menor usando a ordenaçao padrao da priority_queue.
+	
+	int answer=INT_MAX;
+	while(pq.size()){
+		iii foo = pq.top(); pq.pop();
+		int u = foo.second.second, d = foo.second.first;
+		
+		if(u == target) {
+			answer = d;
+			break;
+		}
+		if(d>seen[u]) continue;
+		
+		for(edge e : adj[u]){
+			if(seen[e.destino] != -1 && d+e.peso >= seen[e.destino]) continue;
+			
+			seen[e.destino] = d+e.peso;
+			pq.push(iii(-(seen[e.destino]+h[e.destino]), ii(seen[e.destino], e.destino)));
+			pai[e.destino] = u;
+		}
+	}
+	
+	if(pai[target] == 0) {
+		printf("Resposta nao encontrada\n");
+		return;
+	}
+	
+	find_answer_bfs(origin, target, pai);
+	cout << "\ndistancia = " << answer << "\n\n";
+}
+
+
+
+
 void solve(int origin, int target){
 	
 	printf("Busca em Largura(Superficie):\n");
@@ -160,34 +205,44 @@ void solve(int origin, int target){
 	printf("\nBusca em Profundidade com limite 3:\n");
 	if(!dfs_limitada(origin, target, 3)) printf("Resposta nao encontrada\n");
 	
+	memset(seen, 0, sizeof seen);
+	answer.clear();
+	
+	printf("\nBusca A*:\n");
+	A_star(origin, target);
 }
 
 
 int main(){
-	
-	n=2;
 	string a, b;
+	int m, cnt=2, w;
+
+	cin >> n >> m;
 	cin >> a >> b;
 	
 	dic[a] = 0; dic[b] = 1;
 	inv[0] = a;	inv[1] = b;
 	
-	int w;
-	while(cin >> a){
-		cin >> b >> w;
+	while(m--){
+		cin >> a >> b >> w;
 
 		if(!dic.count(a)) {
-			inv[n] = a;
-			dic[a] = n++;
+			inv[cnt] = a;
+			dic[a] = cnt++;
 		}
 		if(!dic.count(b)) {
-			inv[n] = b;
-			dic[b] = n++;
+			inv[cnt] = b;
+			dic[b] = cnt++;
 		}
 		
 		adj[dic[a]].push_back(edge(dic[b], w));
 		adj[dic[b]].push_back(edge(dic[a], w));
 	}
+	for(int i=0; i<n; i++){
+		cin >> a >> w;
+		h[dic[a]] = w;
+	}
+	
 	
 	solve(0, 1);
 }
