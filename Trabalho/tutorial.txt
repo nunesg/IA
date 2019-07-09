@@ -1,0 +1,22 @@
+na pasta do projeto
+
+$ virtualenv env
+$ source env/bin/activate
+
+(env) $ pip install --upgrade google-cloud-speech
+(env) $ pip install --upgrade pyaudio
+(env) $ export GOOGLE_APPLICATION_CREDENTIALS="key.json"
+
+
+o arquivo de audio tem que estar em 16bits ou 24bits, 1 canal, e frequencia certa
+
+gravar do terminal funcionando:
+arecord -v -f cd -c 1 --rate=16000 -t raw teste.raw
+
+executar aux.py
+
+retirar audio do video via ffmpeg:
+ffmpeg -i video.mp4 -ac 1 -ar 16000 -vn -acodec flac output_audio.flac
+
+executar do microfone:
+execute o arquivo micstream.py
